@@ -3,31 +3,33 @@ import { View, Image } from "react-native";
 import Text from "@kaloraat/react-native-text";
 import InputComponent from "../components/InputComponent";
 import SubmitButtonComponent from "../components/SubmitButtonComponent";
-import axios from "axios";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase/Authentication";
+import { useNavigation } from "@react-navigation/native";
 
-const SignInScreen = ({ navigation }) => {
+const SignInScreen = () => {
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
-  const [loading, setLoading] = useState();
+  const navigation = useNavigation();
 
   const handleSubmit = async () => {
     if (!email || !password) {
       alert("All fields are required");
       setLoading("false");
       return;
-    }
-    try {
-      const { data } = await axios.post("http://localhost:8000/signin", {
-        email,
-        password,
-      });
-      setLoading(false);
-      console.log("Success", data);
-      alert("Sign In Successfull");
-    } catch (error) {
-      console.log(err);
-      setLoading(false);
+    } else if (email && password) {
+      try {
+        // console.log(email + "" + password);
+        await signInWithEmailAndPassword(auth, email, password);
+        setEmail("");
+        setPassword("");
+        navigation.navigate("Home");
+      } catch (error) {
+        if (error.code === "auth/invalid-email")
+          alert("Invalid Email and Password!!!");
+        else console.log(error);
+      }
     }
   };
 

@@ -3,33 +3,40 @@ import { View, Image } from "react-native";
 import Text from "@kaloraat/react-native-text";
 import InputComponent from "../components/InputComponent";
 import SubmitButtonComponent from "../components/SubmitButtonComponent";
-import axios from "axios";
 import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
+import { useNavigation } from "@react-navigation/native";
+import { createUserWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase/Authentication";
 
-const SignUpScreen = ({ navigation }) => {
+const SignUpScreen = () => {
   const [name, setName] = useState();
   const [email, setEmail] = useState();
   const [password, setPassword] = useState();
-  const [loading, setLoading] = useState();
+  // const [loading, setLoading] = useState();
+  const navigation = useNavigation();
 
   const handleSubmit = async () => {
     if (!name || !email || !password) {
       alert("All fields are required");
-      setLoading("false");
       return;
-    }
-    try {
-      const { data } = await axios.post("http://localhost:8000/signup", {
-        name,
-        email,
-        password,
-      });
-      setLoading(false);
-      console.log("Success", data);
-      alert("Sign In Successfull");
-    } catch (error) {
-      console.log(err);
-      setLoading(false);
+    } else if (email && password) {
+      try {
+        // console.log(email + " " + password);
+        await createUserWithEmailAndPassword(auth, email, password);
+        alert("Account created successfully");
+        setName("");
+        setEmail("");
+        setPassword("");
+        navigation.navigate("Signin");
+      } catch (error) {
+        if (error.code === "auth/email-already-in-use") {
+          alert(
+            "The provided email is already in use. Please use a different email address."
+          );
+        } else {
+          console.log("Error while authentication", error);
+        }
+      }
     }
   };
 
